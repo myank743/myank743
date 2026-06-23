@@ -1,0 +1,73 @@
+name: Metrics
+on:
+  # Rebuilds the dashboard every 12 hours, on manual run, and on pushes to main
+  schedule: [{ cron: "0 */12 * * *" }]
+  workflow_dispatch:
+  push: { branches: ["main"] }
+
+jobs:
+  github-metrics:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: lowlighter/metrics@latest
+        with:
+          # ── Auth ──────────────────────────────────────────────
+          # Personal Access Token (classic) stored as a repo secret.
+          # This is NOT the default GITHUB_TOKEN — see setup steps.
+          token: ${{ secrets.METRICS_TOKEN }}
+
+          # ── Output & general ──────────────────────────────────
+          filename: github-metrics.svg
+          user: myank743
+          template: classic
+          config_timezone: Asia/Kolkata        # so commit-time charts read in IST
+
+          # ── Base card (top stats block) ───────────────────────
+          base: header, activity, community, repositories, metadata
+
+          # ── Isometric 3D contribution calendar ────────────────
+          plugin_isocalendar: yes
+          plugin_isocalendar_duration: full-year
+
+          # ── Coding habits + recent-activity charts ────────────
+          # (commit activity per time of day / per day, language activity)
+          plugin_habits: yes
+          plugin_habits_facts: yes
+          plugin_habits_charts: yes
+          plugin_habits_days: 14
+          plugin_habits_from: 200
+
+          # ── Most-used languages ───────────────────────────────
+          # NOTE: reads your PUBLIC repos, so it reflects JS/HTML right now,
+          # not your full PHP/Laravel stack. Keep the manual badges too.
+          plugin_languages: yes
+          plugin_languages_limit: 8
+          plugin_languages_details: bytes-size, percentage
+
+          # ── PageSpeed / Lighthouse scores for your site ───────
+          plugin_pagespeed: yes
+          plugin_pagespeed_url: https://myank743.github.io
+          plugin_pagespeed_detailed: yes
+          # plugin_pagespeed_token: ${{ secrets.PAGESPEED_TOKEN }}  # optional, avoids rate limits
+
+          # ── "Mastered technologies and topics" icon grid ──────
+          # IMPORTANT: this pulls from topics you've STARRED on GitHub.
+          # Go star php, laravel, react, nodejs, mysql, etc. or it stays empty.
+          plugin_topics: yes
+          plugin_topics_mode: icons
+          plugin_topics_limit: 0
+
+          # ── OPTIONAL: enable these later if you want ───────────
+          # Lines of code changed (slower — analyses repos):
+          # plugin_lines: yes
+          #
+          # GitHub Projects ("Roadmap and todos") — needs a project board:
+          # plugin_projects: yes
+          #
+          # Music suggestions — needs Spotify or Apple Music tokens (extra setup):
+          # plugin_music: yes
+          # plugin_music_provider: spotify
+          # plugin_music_mode: recent
+          # plugin_music_token: ${{ secrets.SPOTIFY_TOKENS }}
